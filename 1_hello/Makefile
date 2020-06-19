@@ -9,6 +9,7 @@ default: | clean hello_5_times.o
 	# ld -no_pie -macosx_version_min 10.15 -arch i386 hello_5_times.o -o hello_5_times_bin
 	#ld -no_pie -e main -lSystem -macosx_version_min 10.15 -arch x86_64 hello_5_times.o -o hello_5_times_bin
 	ld hello_5_times.o -o hello_5_times_bin
+	./hello_5_times_bin
 
 hello_5_times.o:
 	# All architectures: nasm -hf

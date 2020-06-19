@@ -5,65 +5,61 @@
 ;; modified form, provided that any modified versions are
 ;; clearly marked as such.
 
-; %define STUD_IO_LINUX
-%define STUD_IO_FREEBSD
+%define STUD_IO_LINUX
+;%define STUD_IO_FREEBSD
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; system dependend part
-
+;; системная часть здесь
 %ifdef STUD_IO_LINUX
+	; generic 3-param syscall
+	%macro _syscall_3 4
+		push edx
+		push ecx
+		push ebx ; it is senseless to save eax as it holds the return
+		push %1
+		push %2
+		push %3
+		push %4
+		pop edx
+		pop ecx
+		pop ebx
+		pop eax 
+		int 0x80
+		pop ebx
+		pop ecx
+		pop edx
+	%endmacro
 
-; generic 3-param syscall
-%macro _syscall_3 4
-	push edx
-	push ecx
-	push ebx ; it is senseless to save eax as it holds the return
-	push %1
-	push %2
-	push %3
-	push %4
-	pop edx
-	pop ecx
-	pop ebx
-	pop eax 
-	int 0x80
-	pop ebx
-	pop ecx
-	pop edx
-%endmacro
-
-; syscall_exit is the only syscall we use that has 1 parameter
-%macro _syscall_exit 1
-	mov ebx, %1	; exit code
-	mov eax, 1	; 1 = sys_exit
-	int 0x80
-%endmacro
+	; syscall_exit is the only syscall we use that has 1 parameter
+	%macro _syscall_exit 1
+		mov ebx, %1	; exit code
+		mov eax, 1	; 1 = sys_exit
+		int 0x80
+	%endmacro
 
 %elifdef STUD_IO_FREEBSD
+	; generic 3-param syscall
+	%macro _syscall_3 4
+		push	%4
+		push	%3
+		push	%2
+		mov	eax, %1
+		push	eax
+		int	0x80
+		add	esp, 16
+	%endmacro
 
-; generic 3-param syscall
-%macro _syscall_3 4
-	push	%4
-	push	%3
-	push	%2
-	mov	eax, %1
-	push	eax
-	int	0x80
-	add	esp, 16
-%endmacro
-
-%macro _syscall_exit 1
-	push	%1	; exit code
-	mov	eax, 1	; 1 = sys_exit
-	push	eax
-	int	0x80
-	; no cleanup - this will never return anyway
-%endmacro
+	%macro _syscall_exit 1
+		push	%1	; exit code
+		mov	eax, 1	; 1 = sys_exit
+		push	eax
+		int	0x80
+		; no cleanup - this will never return anyway
+	%endmacro
 
 %else
-%error You must define either STUD_IO_LINUX or STUD_IO_FREEBSD
+	%error You must define either STUD_IO_LINUX or STUD_IO_FREEBSD
 %endif
-
 ;; system dependent part ends here
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
