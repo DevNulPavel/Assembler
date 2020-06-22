@@ -8,7 +8,8 @@ default: | clean hello_5_times.o
 	# Entry point: -e main
 	# ld -no_pie -macosx_version_min 10.15 -arch i386 hello_5_times.o -o hello_5_times_bin
 	#ld -no_pie -e main -lSystem -macosx_version_min 10.15 -arch x86_64 hello_5_times.o -o hello_5_times_bin
-	ld hello_5_times.o -o hello_5_times_bin
+	ld -m elf_i386 hello_5_times.o -o hello_5_times_bin
+	echo "\n\nRun program:"
 	./hello_5_times_bin
 
 hello_5_times.o:
@@ -16,7 +17,7 @@ hello_5_times.o:
 	# nasm -f macho32 hello_5_times.asm -o hello_5_times.o
 	# nasm -f macho64 -o hello_5_times.o hello_5_times.asm
 	# -f elf32
-	nasm -f elf -o hello_5_times.o hello_5_times.asm
+	nasm -f elf32 -o hello_5_times.o hello_5_times.asm
 
 clean:
 	rm -f *.o ./hello_5_times_bin
