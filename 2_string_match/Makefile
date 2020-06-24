@@ -3,12 +3,12 @@
 # http://utyatnishna.ru/info/10487/cant-link-object-file-using-ld-mac-os-x
 
 default: | clean string_match.o
-	ld -m elf_i386 string_match.o -o string_match_bin && \
+	ld -g -m elf_i386 string_match.o -o string_match_bin && \
 	echo "\n\nRun program:" && \
 	./string_match_bin "text1" "text?"
 
 string_match.o:
-	nasm -f elf32 -o string_match.o string_match.asm
+	nasm -g -f elf32 -o string_match.o string_match.asm
 
 clean:
 	rm -f *.o ./string_match_bin

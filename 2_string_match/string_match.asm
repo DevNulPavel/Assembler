@@ -130,10 +130,15 @@ _start:
 	test eax, eax
 	jz print_no
 
-	mov edx, 4		; print yes
+	; Записываем указатель на строку
 	mov ecx, m_yes
+	; Поток вывода номер 1 (stdout)
 	mov ebx, 1
+	; Записываем длину строки
+	mov edx, 4		; print yes
+	; Записываем номер прерывания вызова write (4)
 	mov eax, 4
+	; Вызываем программное прерывание
 	int 80h
 	jmp quit
 print_no:			; print no
@@ -177,4 +182,4 @@ section .data
 m_yes		db	"YES", 10
 m_no		db	"NO ", 10
 m_wrong		db	"Wrong arguments count, must be 2", 10
-m_wrong_len	equ	$-m_wrong
+m_wrong_len	equ	$-m_wrong ; Записываем разницу между текущим адресом и указателем на строку - получаем длину в байтах

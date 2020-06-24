@@ -18,7 +18,7 @@
             "request": "launch",
             "name": "Debug (lldb)",
             "program": "${workspaceFolder}/2_string_match/string_match_bin",
-            "args": [],
+            "args": ["asd", "asd"],
             "cwd": "${workspaceFolder}/2_string_match"
         }
     ]
