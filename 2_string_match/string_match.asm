@@ -47,30 +47,46 @@ match:
 	; Если звездочка, значит начинаем цикл звездочки
 	; Записываем в нашу локальную переменную индекса [ebp-4] значение ноль
 	mov dword [ebp-4], 0	; I := 0
+; Запускаем наш цикл
 .star_loop:
-	; prepare the recursive call
-		mov eax, edi		; second arg of match is pattern+1
-		inc eax
-		push eax
-		mov eax, esi		; first arg of match is string+I
-		add eax, [ebp-4]	; prepare the recursive call
-		push eax
-		call match
-		add esp, 8		; remove params from stack
-		test eax, eax		; what is returned, true or false?
-		jnz .true		; if 1, then match is found, return 1
-		add eax, [ebp-4]   
-		cmp byte [esi+eax], 0	; may be string ended?
-		je .false		; if so, no more possibilities to try
-		inc dword [ebp-4]	; I := I + 1
-		jmp .star_loop		; try the next possibility
+	; Подготавливаемся к рекурсивному вызову
+	; Записываем в eax наш символ
+	mov eax, edi		; второй аргумент - это указатель на символ паттерн+1 (second arg of match is pattern+1)
+	; Увеличиваем значение указателя на 1 байт
+	inc eax
+	; Заносим в стек наш указатель на байт паттерна
+	push eax
+	; Заносим в eax указатель на строку
+	mov eax, esi		; first arg of match is string+I
+	; Добавляем к нашему указателю значение TODO: ????
+	add eax, [ebp-4]	; prepare the recursive call
+	; Заносим в стек наш второй указатель
+	push eax
+	; Вызываем нашу функцию, на вершине стека будет адрес возврата, затем ниже будет параметр
+	; проверяемой строки, затем будет уже идти параметр паттерна
+	call match
+	; Удаляем параметры из стека просто смещая указатель на 8 байт вверх, уменьшая стек
+	add esp, 8		; remove params from stack
+	; Сравниваем результат выполнения нашей функции
+	test eax, eax		; what is returned, true or false?
+	; Если функция вернула 1 - значи паттерн совпадает со строкой
+	jnz .true		; if 1, then match is found, return 1
+	; Иначе Проверяем, закончилась строка или нет
+	add eax, [ebp-4]   
+	cmp byte [esi+eax], 0	; may be string ended?
+	; Если строка закончилась - значит благополучно выходим из приложения с обозначением, что параметры не совпадают
+	je .false		; if so, no more possibilities to try
+	; Если строка не закончилась, тогда увеличиваем индекс следующего проверяемого значения
+	inc dword [ebp-4]	; I := I + 1
+	; Пробуем снова
+	jmp .star_loop		; try the next possibility
 .not_star:
-		mov al, [edi]		; we already know pattern isn't ended
-		cmp al, '?'
-		je .quest
-		cmp al, [esi]		; if the string's over, this cmp fails
-		jne .false		; as well as if the chars differ
-		jmp .goon
+	mov al, [edi]		; we already know pattern isn't ended
+	cmp al, '?'
+	je .quest
+	cmp al, [esi]		; if the string's over, this cmp fails
+	jne .false		; as well as if the chars differ
+	jmp .goon
 .quest:
 		cmp byte [esi], 0	; we only need to check for string end
 		jz .false
@@ -79,75 +95,86 @@ match:
 		inc edi 
 		jmp .again
 .true:
-		mov eax, 1
-		jmp .quit
+	; Результат - true будет в eax
+	mov eax, 1
+	jmp .quit
 .false:
-		xor eax, eax
+	; Результат - false будет в eax
+	xor eax, eax
 .quit:
-		pop edi
-		pop esi
-		mov esp, ebp
-		pop ebp
-		ret
+	; Извлекаем старые значения регистров
+	pop edi
+	pop esi
+	; Извлекаем старый указатель на стек
+	mov esp, ebp
+	; Извлекаем ebp регистр
+	pop ebp
+	; Выходим из функции с восстановлением из стека адреса возврата
+	ret
 
-
-
-;
-;  MAIN PROGRAM
-;
+; MAIN PROGRAM
 _start:
-		pop eax
-		cmp eax, 3
-		jne wrong_args
-		pop esi  ; ignore argv[0]
-		pop esi  ; get argv[1]
-		pop edi  ; get argv[2]
-		mov [string], esi
-		mov [pattern], edi
+	pop eax
+	cmp eax, 3
+	jne wrong_args
+	pop esi  ; ignore argv[0]
+	pop esi  ; get argv[1]
+	pop edi  ; get argv[2]
+	mov [string], esi
+	mov [pattern], edi
 
-		push edi
-		push esi
-		call match
-		add esp, 8
-		test eax, eax
-		jz print_no
+	push edi
+	push esi
+	call match
+	add esp, 8
+	test eax, eax
+	jz print_no
 
-		mov edx, 4		; print yes
-		mov ecx, m_yes
-		mov ebx, 1
-		mov eax, 4
-		int 80h
-		jmp quit
+	mov edx, 4		; print yes
+	mov ecx, m_yes
+	mov ebx, 1
+	mov eax, 4
+	int 80h
+	jmp quit
 print_no:			; print no
-		mov edx, 4
-		mov ecx, m_no
-		mov ebx, 1
-		mov eax, 4
-		int 80h
-		jmp quit
+	mov edx, 4
+	mov ecx, m_no
+	mov ebx, 1
+	mov eax, 4
+	int 80h
+	jmp quit
 
 wrong_args:			; say wrong args
-		mov edx, m_wrong_len
-		mov ecx, m_wrong
-		mov ebx, 1
-		mov eax, 4
-		int 80h
-		jmp quit
-
+	; Заносим в edx количество выводимых символов
+	mov edx, m_wrong_len
+	; В ecx заносим указатель на строку
+	mov ecx, m_wrong
+	; TODO: ???
+	mov ebx, 1
+	mov eax, 4
+	; Вызываем системное прерывание для вывода строки
+	int 80h
+	; Завершаем приложение
+	jmp quit
 
 quit:
-		mov ebx, 0
-		mov eax, 1
-		int 80h	
+	mov ebx, 0
+	mov eax, 1
+	int 80h	
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 section .bss
 
+; Резервируем место для двойного слова под указатели размером 4 байта (двойное слово)
 string		resd	1
 pattern		resd	1
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 section .data
 
+; Резервируем строки с завершающимся нулем для вывода результатов
 m_yes		db	"YES", 10
 m_no		db	"NO ", 10
-m_wrong		db	"wrong arguments count, must be 2", 10
+m_wrong		db	"Wrong arguments count, must be 2", 10
 m_wrong_len	equ	$-m_wrong
