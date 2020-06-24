@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "launch",
+            "name": "Debug (gdb)",
+            "target": "${workspaceFolder}/2_string_match/string_match_bin",
+            "cwd": "${workspaceRoot}/2_string_match",
+            "valuesFormatting": "parseText",
+            "arguments": "asd asdds"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug (lldb)",
+            "program": "${workspaceFolder}/2_string_match/string_match_bin",
+            "args": [],
+            "cwd": "${workspaceFolder}/2_string_match"
+        }
+    ]
+}
